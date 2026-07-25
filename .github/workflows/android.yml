@@ -17,7 +17,11 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write  # 允许创建/修改 Release
+      # 如果需要操作 Issues/Pull Requests，可添加：
+     #  issues: write
+      # pull-requests: write
     steps:
     - uses: actions/checkout@v6
       with:
