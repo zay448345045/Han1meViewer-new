@@ -65,3 +65,5 @@ Han1meViewer 是一个使用 Kotlin 开发的 Android 客户端，用于浏览�
 - 本项目作为包含 GPLv3 派生代码的整体，按 GNU GPLv3 发布。
 - 项目包含来自 [MomoQR](https://github.com/daisukiKaffuChino/MomoQR) 的代码，归属作者 daisukiKaffuChino，并遵循 GPLv3。
 - 原项目 Yenaly 的遗留归属和 MomoQR 归属见 [NOTICE](NOTICE)，Apache-2.0 许可证文本见 [LICENSE-APACHE](LICENSE-APACHE)；完整许可证说明见 [LICENSE](LICENSE)。
+- [![Total Downloads](https://img.shields.io/github/downloads/zay448345045/Han1meViewer-new/total?style=for-the-badge&color=2ea44f&logo=github)](https://github.com/zay448345045/Han1meViewer-new/releases)
+- [![Total Downloads](https://img.shields.io/github/downloads/daisukiKaffuChino/Han1meViewer/total?style=for-the-badge&color=2ea44f&logo=github)](https://github.com/daisukiKaffuChino/Han1meViewer/releases)
