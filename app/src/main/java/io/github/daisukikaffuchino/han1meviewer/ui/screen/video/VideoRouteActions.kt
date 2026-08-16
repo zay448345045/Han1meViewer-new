@@ -4,16 +4,17 @@ import android.content.Context
 import androidx.glance.appwidget.updateAll
 import io.github.daisukikaffuchino.han1meviewer.HAdvancedSearch
 import io.github.daisukikaffuchino.han1meviewer.HCacheManager
-import io.github.daisukikaffuchino.han1meviewer.Preferences
+import io.github.daisukikaffuchino.han1meviewer.logic.DatabaseRepo
+import io.github.daisukikaffuchino.han1meviewer.logic.SettingsRepository
 import io.github.daisukikaffuchino.han1meviewer.R
 import io.github.daisukikaffuchino.han1meviewer.getHanimeVideoDownloadLink
 import io.github.daisukikaffuchino.han1meviewer.getHanimeVideoLink
 import io.github.daisukikaffuchino.han1meviewer.logic.dao.CheckInRecordDatabase
 import io.github.daisukikaffuchino.han1meviewer.logic.entity.CheckInRecordEntity
+import io.github.daisukikaffuchino.han1meviewer.logic.entity.download.DownloadGroupEntity
 import io.github.daisukikaffuchino.han1meviewer.logic.model.HanimeVideo
 import io.github.daisukikaffuchino.han1meviewer.logic.model.SearchOption
 import io.github.daisukikaffuchino.han1meviewer.ui.activity.MainActivity
-import io.github.daisukikaffuchino.han1meviewer.ui.navigation.navigateSafely
 import io.github.daisukikaffuchino.han1meviewer.ui.navigation.main.SearchRoute
 import io.github.daisukikaffuchino.han1meviewer.ui.widget.CheckInWidget
 import io.github.daisukikaffuchino.han1meviewer.ui.viewmodel.VideoViewModel
@@ -50,7 +51,7 @@ class VideoRouteActions(
         }?.searchKey ?: ""
         val map = buildMap<HAdvancedSearch, Serializable> {
             put(HAdvancedSearch.QUERY, artist.name)
-            if (searchKey.isNotEmpty() && !Preferences.searchArtistIgnoreVideoType) {
+            if (searchKey.isNotEmpty() && !SettingsRepository.searchArtistIgnoreVideoType) {
                 put(HAdvancedSearch.GENRE, searchKey)
             }
         }
@@ -58,18 +59,18 @@ class VideoRouteActions(
             map.forEach { (key, value) -> put(key.name, value) }
         }
         val routeMap = bundleMap.mapValues { it.value.toString() }
-        (context as? MainActivity)?.navController?.navigateSafely(
+        (context as? MainActivity)?.mainBackStack?.add(
             SearchRoute(query = artist.name, advancedSearchJson = Json.encodeToString(routeMap))
         )
     }
 
     fun openTagSearch(tag: String) {
-        (context as? MainActivity)?.navController?.navigateSafely(SearchRoute(query = tag))
+        (context as? MainActivity)?.mainBackStack?.add(SearchRoute(query = tag))
     }
 
     fun toggleArtistSubscription(artist: HanimeVideo.Artist) {
         val post = artist.post ?: return
-        if (!Preferences.isAlreadyLogin) {
+        if (!SettingsRepository.isAlreadyLogin) {
             SonnerToast.warning(R.string.login_first)
             return
         }
@@ -86,7 +87,7 @@ class VideoRouteActions(
     }
 
     fun toggleFavorite(video: HanimeVideo) {
-        if (!Preferences.isAlreadyLogin) {
+        if (!SettingsRepository.isAlreadyLogin) {
             SonnerToast.warning(R.string.login_first)
             return
         }
@@ -98,7 +99,7 @@ class VideoRouteActions(
     }
 
     fun rateVideo(video: HanimeVideo, isPositive: Boolean) {
-        if (!Preferences.isAlreadyLogin) {
+        if (!SettingsRepository.isAlreadyLogin) {
             SonnerToast.warning(R.string.login_first)
             return
         }
@@ -109,7 +110,7 @@ class VideoRouteActions(
         myList: HanimeVideo.MyList?,
         selectedStates: List<Boolean>,
     ) {
-        if (!Preferences.isAlreadyLogin || myList == null || myList.myListInfo.isEmpty()) {
+        if (!SettingsRepository.isAlreadyLogin || myList == null || myList.myListInfo.isEmpty()) {
             SonnerToast.warning(R.string.login_first)
             return
         }
@@ -168,16 +169,38 @@ class VideoRouteActions(
 
     fun confirmPendingDownload(
         videoData: HanimeVideo,
-        pendingDownloadPrompt: DownloadPromptState?
+        pendingDownloadPrompt: DownloadPromptState?,
+        autoCreateGroup: Boolean,
     ) {
         val redownload = pendingDownloadPrompt?.oldQuality != null
         onPendingDownloadPromptChange(null)
         scope.launch {
-            enqueueDownloadWork(videoData, redownload = redownload)
+            val groupName = videoData.downloadGroupName()
+            val groupId = if (autoCreateGroup && groupName.isNotEmpty()) {
+                withContext(Dispatchers.IO) {
+                    DatabaseRepo.HanimeDownload.getOrCreateGroup(groupName)
+                }
+            } else {
+                pendingDownloadPrompt?.oldGroupId ?: DownloadGroupEntity.DEFAULT_GROUP_ID
+            }
+            enqueueDownloadWork(
+                videoData = videoData,
+                groupId = groupId,
+                redownload = redownload,
+            )
         }
     }
 
-    private suspend fun enqueueDownloadWork(videoData: HanimeVideo, redownload: Boolean = false) {
+    private fun HanimeVideo.downloadGroupName(): String =
+        sequenceOf(playlist?.playlistName, chineseTitle, title)
+            .firstNotNullOfOrNull { candidate -> candidate?.trim()?.takeIf(String::isNotEmpty) }
+            .orEmpty()
+
+    private suspend fun enqueueDownloadWork(
+        videoData: HanimeVideo,
+        groupId: Int,
+        redownload: Boolean = false,
+    ) {
         onRequestNotificationPermission()
         val quality = getCheckedQuality()
         withContext(Dispatchers.IO) {
@@ -191,6 +214,7 @@ class VideoRouteActions(
                 hanimeName = videoData.title,
                 videoCode = viewModel.videoCode,
                 coverUrl = videoData.coverUrl,
+                groupId = groupId,
             ),
             redownload = redownload,
         )

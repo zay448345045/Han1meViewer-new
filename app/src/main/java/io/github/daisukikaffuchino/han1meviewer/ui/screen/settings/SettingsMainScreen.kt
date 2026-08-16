@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.github.daisukikaffuchino.han1meviewer.BuildConfig
 import io.github.daisukikaffuchino.han1meviewer.R
 import io.github.daisukikaffuchino.han1meviewer.ui.component.SettingNavigationItem
 import io.github.daisukikaffuchino.han1meviewer.ui.component.lazy.LazyColumn
@@ -22,8 +23,9 @@ fun SettingsMainScreen(
     onOpenPlayerSettings: () -> Unit,
     onOpenNetworkDownload: () -> Unit,
     onOpenAppearance: () -> Unit,
-    onOpenPrivacy: () -> Unit,
-    onOpenData: () -> Unit,
+    onOpenInterfaceInteraction: () -> Unit,
+    onOpenDataPrivacy: () -> Unit,
+    onOpenDeveloperOptions: () -> Unit,
     onOpenAbout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -35,10 +37,28 @@ fun SettingsMainScreen(
     ) {
         item {
             SettingNavigationItem(
+                title = stringResource(R.string.settings_appearance),
+                summary = stringResource(R.string.settings_appearance_summary),
+                iconRes = R.drawable.ic_palette,
+                shapes = HanimeDefaults.cardShapes(),
+                onClick = onOpenAppearance,
+            )
+        }
+        item {
+            SettingNavigationItem(
+                title = stringResource(R.string.settings_interface_interaction),
+                summary = stringResource(R.string.settings_interface_interaction_summary),
+                iconRes = R.drawable.ic_interests,
+                shapes = HanimeDefaults.cardShapes(),
+                onClick = onOpenInterfaceInteraction,
+            )
+        }
+        item {
+            SettingNavigationItem(
                 title = stringResource(R.string.settings_video_playback),
                 summary = stringResource(R.string.settings_video_playback_summary),
                 iconRes = R.drawable.ic_video_settings,
-                shapes = HanimeDefaults.largerShapes(),
+                shapes = HanimeDefaults.cardShapes(),
                 onClick = onOpenVideoPlayback,
             )
         }
@@ -46,8 +66,8 @@ fun SettingsMainScreen(
             SettingNavigationItem(
                 title = stringResource(R.string.player_settings),
                 summary = stringResource(R.string.settings_player_summary),
-                iconRes = R.drawable.ic_play_circle,
-                shapes = HanimeDefaults.largerShapes(),
+                iconRes = R.drawable.ic_dvr,
+                shapes = HanimeDefaults.cardShapes(),
                 onClick = onOpenPlayerSettings,
             )
         }
@@ -56,43 +76,36 @@ fun SettingsMainScreen(
                 title = stringResource(R.string.settings_network_download),
                 summary = stringResource(R.string.settings_network_download_summary),
                 iconRes = R.drawable.ic_captive_portal,
-                shapes = HanimeDefaults.largerShapes(),
+                shapes = HanimeDefaults.cardShapes(),
                 onClick = onOpenNetworkDownload,
             )
         }
         item {
             SettingNavigationItem(
-                title = stringResource(R.string.settings_appearance),
-                summary = stringResource(R.string.settings_appearance_summary),
-                iconRes = R.drawable.ic_theme,
-                shapes = HanimeDefaults.largerShapes(),
-                onClick = onOpenAppearance,
-            )
-        }
-        item {
-            SettingNavigationItem(
-                title = stringResource(R.string.privacy),
-                summary = stringResource(R.string.settings_privacy_summary),
-                iconRes = R.drawable.ic_admin_panel_settings,
-                shapes = HanimeDefaults.largerShapes(),
-                onClick = onOpenPrivacy,
-            )
-        }
-        item {
-            SettingNavigationItem(
-                title = stringResource(R.string.settings_data),
-                summary = stringResource(R.string.settings_data_summary),
+                title = stringResource(R.string.settings_data_privacy),
+                summary = stringResource(R.string.settings_data_privacy_summary),
                 iconRes = R.drawable.ic_data_table,
-                shapes = HanimeDefaults.largerShapes(),
-                onClick = onOpenData,
+                shapes = HanimeDefaults.cardShapes(),
+                onClick = onOpenDataPrivacy,
             )
+        }
+        if (BuildConfig.DEBUG) {
+            item {
+                SettingNavigationItem(
+                    title = stringResource(R.string.developer_options),
+                    summary = stringResource(R.string.developer_options_summary),
+                    iconRes = R.drawable.ic_code,
+                    shapes = HanimeDefaults.cardShapes(),
+                    onClick = onOpenDeveloperOptions,
+                )
+            }
         }
         item {
             SettingNavigationItem(
                 title = stringResource(R.string.about),
                 summary = stringResource(R.string.settings_about_summary),
                 iconRes = R.drawable.ic_info,
-                shapes = HanimeDefaults.largerShapes(),
+                shapes = HanimeDefaults.cardShapes(),
                 onClick = onOpenAbout,
             )
         }
@@ -103,6 +116,6 @@ fun SettingsMainScreen(
 @Composable
 private fun SettingsMainScreenPreview() {
     ComponentPreview {
-        SettingsMainScreen({}, {}, {}, {}, {}, {}, {})
+        SettingsMainScreen({}, {}, {}, {}, {}, {}, {}, {})
     }
 }

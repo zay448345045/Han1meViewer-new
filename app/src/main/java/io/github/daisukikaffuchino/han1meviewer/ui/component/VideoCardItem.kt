@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -48,7 +49,6 @@ import io.github.daisukikaffuchino.han1meviewer.getHanimeShareText
 import io.github.daisukikaffuchino.han1meviewer.logic.model.VideoItemType
 import io.github.daisukikaffuchino.han1meviewer.ui.activity.MainActivity
 import io.github.daisukikaffuchino.han1meviewer.ui.navigation.main.SearchRoute
-import io.github.daisukikaffuchino.han1meviewer.ui.navigation.navigateSafely
 import io.github.daisukikaffuchino.han1meviewer.ui.preview.ComponentPreview
 import io.github.daisukikaffuchino.han1meviewer.ui.preview.fakeVideosItem
 import io.github.daisukikaffuchino.han1meviewer.ui.screen.RetryableImage
@@ -57,6 +57,7 @@ import io.github.daisukikaffuchino.han1meviewer.ui.theme.shapeByInteraction
 import io.github.daisukikaffuchino.utils.rememberCopyTextToClipboard
 import io.github.daisukikaffuchino.han1meviewer.util.DisplayTextLocalizer
 import io.github.daisukikaffuchino.utils.SonnerToast
+import io.github.daisukikaffuchino.utils.VibrationUtil
 
 
 /**
@@ -72,8 +73,10 @@ fun VideoCardItem(
     modifier: Modifier = Modifier,
     videoItem: VideoItemType,
     isHorizontalCard: Boolean = true,
+    isHomePage: Boolean = false,
     isWatched: Boolean = false,
     isPlaying: Boolean = false,
+    containerColor: Color? = null,
     onClickVideosItem: (String) -> Unit,
     onLongClickVideosItem: (String, String) -> Unit,
 ) {
@@ -81,6 +84,7 @@ fun VideoCardItem(
     val iconSize = dimensionResource(id = R.dimen.view_view_and_time_icon_size)
     val imageAspectRatio = if (isHorizontalCard) 16f / 9f else 3f / 4f
     val context = LocalContext.current
+    val view = LocalView.current
     val copyTextToClipboard = rememberCopyTextToClipboard()
     val interactionSource = remember { MutableInteractionSource() }
     val indication = LocalIndication.current
@@ -88,7 +92,7 @@ fun VideoCardItem(
     var showContextMenu by remember { mutableStateOf(false) }
     val currentArtist = videoItem.currentArtist?.takeIf { it.isNotBlank() }
     val cardShape = shapeByInteraction(
-        shapes = HanimeDefaults.largerShapes(),
+        shapes = HanimeDefaults.cardShapes(),
         pressed = pressed,
         animationSpec = HanimeDefaults.shapesDefaultAnimationSpec,
     )
@@ -97,6 +101,11 @@ fun VideoCardItem(
             .fillMaxWidth()
             .animateContentSize(),
         shape = cardShape,
+        color = containerColor ?: if (isHomePage) {
+            HanimeDefaults.Colors.homeVideoCard
+        } else {
+            HanimeDefaults.Colors.card
+        },
     ) {
         Box {
             Column(
@@ -107,8 +116,14 @@ fun VideoCardItem(
                         enabled = !isPlaying,
                         interactionSource = interactionSource,
                         indication = indication,
-                        onClick = { onClickVideosItem(videoItem.videoCode) },
-                        onLongClick = { showContextMenu = true },
+                        onClick = {
+                            VibrationUtil.performHapticFeedback(view)
+                            onClickVideosItem(videoItem.videoCode)
+                        },
+                        onLongClick = {
+                            VibrationUtil.performHapticFeedback(view)
+                            showContextMenu = true
+                        },
                     ),
             ) {
                 Box(
@@ -309,7 +324,7 @@ fun VideoCardItem(
                         text = { Text("搜索该作者所有作品") },
                         onClick = {
                             showContextMenu = false
-                            (context as? MainActivity)?.navController?.navigateSafely(
+                            (context as? MainActivity)?.mainBackStack?.add(
                                 SearchRoute(query = currentArtist)
                             )
                         },

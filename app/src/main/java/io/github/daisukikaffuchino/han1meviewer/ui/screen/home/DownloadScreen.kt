@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonMenu
 import androidx.compose.material3.FloatingActionButtonMenuItem
@@ -32,6 +34,7 @@ import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,6 +56,7 @@ import io.github.daisukikaffuchino.han1meviewer.ui.screen.home.download.MoveGrou
 import io.github.daisukikaffuchino.han1meviewer.ui.screen.home.download.toDisplayGroups
 import io.github.daisukikaffuchino.han1meviewer.ui.screen.home.download.toFlatNodeList
 import io.github.daisukikaffuchino.han1meviewer.ui.screen.home.download.toNodeList
+import io.github.daisukikaffuchino.utils.VibrationUtil
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -205,6 +209,7 @@ fun DownloadScreen(
     HanimeScaffold(
         title = stringResource(R.string.download),
         onBack = onBack,
+        contentHorizontalPadding = 0.dp,
         floatingActionButton = {
             DownloadFabMenu(
                 currentPage = uiState.currentPage,
@@ -310,6 +315,7 @@ private fun DownloadFabMenu(
     onImportDownloaded: () -> Unit,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
+    val view = LocalView.current
     val visible = !multiSelectMode && (currentPage != 0 || hasDownloadingItems)
 
     LaunchedEffect(currentPage, multiSelectMode, hasDownloadingItems) {
@@ -321,92 +327,114 @@ private fun DownloadFabMenu(
         enter = fadeIn() + slideInVertically { it / 2 },
         exit = fadeOut() + slideOutVertically { it / 2 },
     ) {
-        Box(
-            modifier = Modifier.padding(8.dp)
-        ) {
-            FloatingActionButtonMenu(
-                expanded = expanded,
-                button = {
-                    FloatingActionButton(onClick = { expanded = !expanded }) {
+
+        FloatingActionButtonMenu(
+            expanded = expanded,
+            button = {
+                if (expanded) {
+                    FilledIconButton(
+                        onClick = {
+                            VibrationUtil.performHapticFeedback(view)
+                            expanded = !expanded
+                        },
+                        modifier = Modifier.size(56.dp),
+                    ) {
                         Icon(
-                            painter = painterResource(
-                                if (expanded) R.drawable.ic_close else R.drawable.ic_menu,
-                            ),
-                            contentDescription = stringResource(if (expanded) R.string.close else R.string.download),
+                            painter = painterResource(R.drawable.ic_close),
+                            contentDescription = stringResource(R.string.close),
                         )
                     }
-                },
-            ) {
-                if (currentPage == 0) {
-                    FloatingActionButtonMenuItem(
-                        text = { Text(stringResource(R.string.start_all)) },
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_play_arrow),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            onResumeAll()
-                            expanded = false
-                        },
-                    )
-                    FloatingActionButtonMenuItem(
-                        text = { Text(stringResource(R.string.pause_all)) },
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_pause),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            onPauseAll()
-                            expanded = false
-                        },
-                    )
                 } else {
-                    FloatingActionButtonMenuItem(
-                        text = { Text(stringResource(R.string.edit)) },
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_format_list_bulleted),
-                                contentDescription = null,
-                            )
-                        },
+                    FloatingActionButton(
                         onClick = {
-                            onToggleMultiSelect()
-                            expanded = false
+                            VibrationUtil.performHapticFeedback(view)
+                            expanded = !expanded
                         },
-                    )
-                    FloatingActionButtonMenuItem(
-                        text = { Text(stringResource(R.string.create_new_group)) },
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_add),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            onCreateGroup()
-                            expanded = false
-                        },
-                    )
-                    FloatingActionButtonMenuItem(
-                        text = { Text(stringResource(R.string.read_download_dir_title)) },
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_download),
-                                contentDescription = null,
-                            )
-                        },
-                        onClick = {
-                            onImportDownloaded()
-                            expanded = false
-                        },
-                    )
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_menu),
+                            contentDescription = stringResource(R.string.download),
+                        )
+                    }
                 }
+
+            },
+        ) {
+            if (currentPage == 0) {
+                FloatingActionButtonMenuItem(
+                    text = { Text(stringResource(R.string.start_all)) },
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_play_arrow),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        VibrationUtil.performHapticFeedback(view)
+                        onResumeAll()
+                        expanded = false
+                    },
+                )
+                FloatingActionButtonMenuItem(
+                    text = { Text(stringResource(R.string.pause_all)) },
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_pause),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        VibrationUtil.performHapticFeedback(view)
+                        onPauseAll()
+                        expanded = false
+                    },
+                )
+            } else {
+                FloatingActionButtonMenuItem(
+                    text = { Text(stringResource(R.string.edit)) },
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_format_list_bulleted),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        VibrationUtil.performHapticFeedback(view)
+                        onToggleMultiSelect()
+                        expanded = false
+                    },
+                )
+                FloatingActionButtonMenuItem(
+                    text = { Text(stringResource(R.string.create_new_group)) },
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_add),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        VibrationUtil.performHapticFeedback(view)
+                        onCreateGroup()
+                        expanded = false
+                    },
+                )
+                FloatingActionButtonMenuItem(
+                    text = { Text(stringResource(R.string.read_download_dir_title)) },
+                    icon = {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_download),
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        VibrationUtil.performHapticFeedback(view)
+                        onImportDownloaded()
+                        expanded = false
+                    },
+                )
             }
         }
+
     }
 }
 

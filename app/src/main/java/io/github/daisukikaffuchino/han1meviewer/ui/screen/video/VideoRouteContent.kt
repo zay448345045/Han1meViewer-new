@@ -8,11 +8,11 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.daisukikaffuchino.han1meviewer.R
 import io.github.daisukikaffuchino.han1meviewer.logic.model.HanimeInfo
+import io.github.daisukikaffuchino.han1meviewer.logic.SettingsRepository
 import io.github.daisukikaffuchino.han1meviewer.logic.state.VideoLoadingState
 import io.github.daisukikaffuchino.han1meviewer.ui.bridge.VideoPageHost
 import io.github.daisukikaffuchino.han1meviewer.ui.viewmodel.CommentViewModel
 import io.github.daisukikaffuchino.han1meviewer.ui.viewmodel.VideoViewModel
-import io.github.daisukikaffuchino.han1meviewer.util.defaultSharedPreferences
 import io.github.daisukikaffuchino.utils.application
 
 @Composable
@@ -34,7 +34,7 @@ fun VideoRouteContent(
     onManageMyList: (io.github.daisukikaffuchino.han1meviewer.logic.model.HanimeVideo.MyList?, List<Boolean>) -> Unit,
     onQuickCheckIn: (io.github.daisukikaffuchino.han1meviewer.logic.entity.CheckInRecordEntity) -> Unit,
     onPrepareDownload: (String, io.github.daisukikaffuchino.han1meviewer.logic.model.HanimeVideo?) -> Unit,
-    onConfirmDownloadPrompt: (io.github.daisukikaffuchino.han1meviewer.logic.model.HanimeVideo?) -> Unit,
+    onConfirmDownloadPrompt: (io.github.daisukikaffuchino.han1meviewer.logic.model.HanimeVideo?, Boolean) -> Unit,
     onRequestOpenOfficialDownloadPage: () -> Unit,
     onOpenWebPage: () -> Unit,
     onOpenOriginalComic: (String) -> Unit,
@@ -45,10 +45,8 @@ fun VideoRouteContent(
     pageHost: VideoPageHost,
 ) {
     val hostUiState by videoViewModel.videoHostUiStateFlow.collectAsStateWithLifecycle()
-    val disableComments = remember {
-        application.defaultSharedPreferences
-            .getBoolean("disable_comments", false)
-    }
+    val settings by SettingsRepository.settings.collectAsStateWithLifecycle()
+    val disableComments = settings.disableComments
     val tabs = remember(disableComments, hostUiState.commentBadgeCount, fromDownload) {
         buildList {
             add(VideoTabItem(R.string.introduction))
@@ -94,6 +92,7 @@ fun VideoRouteContent(
                 )
             } else {
                 RenderVideoCommentContent(
+                    videoCode = videoCode,
                     viewModel = commentViewModel,
                     reportMessages = remember { kotlinx.coroutines.flow.MutableSharedFlow() },
                     getMessageText = { message ->

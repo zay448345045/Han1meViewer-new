@@ -42,8 +42,9 @@ enum class HomeSettingsPage {
     VideoPlayback,
     NetworkDownload,
     Appearance,
-    Privacy,
-    Data,
+    InterfaceInteraction,
+    DataPrivacy,
+    DeveloperOptions,
     About,
 }
 
@@ -51,6 +52,7 @@ private enum class HomeSettingsChoiceDialog {
     VideoLanguage,
     VideoQuality,
     AppLanguage,
+    DisplayDensity,
 }
 
 /** Renders one settings category while keeping the existing preference callbacks intact. */
@@ -62,6 +64,8 @@ fun HomeSettingsScreen(
     onVideoQualityChange: (String) -> Unit,
     onDarkModeChange: (String) -> Unit,
     onUseDynamicColorChange: (Boolean) -> Unit,
+    onHapticFeedbackChange: (Boolean) -> Unit,
+    onFunLoadingHintsChange: (Boolean) -> Unit,
     onThemeAccentColorChange: (Int) -> Unit,
     onAppPaletteStyleChange: (Int) -> Unit,
     onAllowPipModeChange: (Boolean) -> Unit,
@@ -71,12 +75,17 @@ fun HomeSettingsScreen(
     onDisableMobileDataWarningChange: (Boolean) -> Unit,
     onDisablePredictiveBackChange: (Boolean) -> Unit,
     onTabletModeChange: (Boolean) -> Unit,
+    onVideoLandscapeLayoutStyleChange: (String) -> Unit,
     onCheckInEnabledChange: (Boolean) -> Unit,
     onDisableCommentsChange: (Boolean) -> Unit,
     onCollapseDownloadedGroupChange: (Boolean) -> Unit,
     onSearchGridColumnsConfigChange: (SearchGridColumnsConfig) -> Unit,
     onHorizontalCardCountConfigChange: (HorizontalCardCountConfig) -> Unit,
     onUseLockScreenChange: (Boolean) -> Unit,
+    onSecureModeChange: (Boolean) -> Unit,
+    onAlwaysShowUpdateCardChange: (Boolean) -> Unit,
+    onDisplayDensityChange: (Int) -> Unit,
+    onTriggerCrash: () -> Unit,
     onHomeCategoryPreferencesChange: (List<String>, Set<String>) -> Unit,
     hKeyframeSettingsContent: @Composable () -> Unit,
     networkSettingsContent: @Composable () -> Unit,
@@ -139,6 +148,17 @@ fun HomeSettingsScreen(
             onOpenAppLanguageSettings(it)
         },
     )
+    ChoiceDialog(
+        visible = activeDialog == HomeSettingsChoiceDialog.DisplayDensity,
+        title = stringResource(R.string.application_dpi),
+        options = listOf("75%" to "75", "100%" to "100", "125%" to "125"),
+        selectedValue = state.displayDensityPercent.toString(),
+        onDismiss = { activeDialog = null },
+        onSelect = { value ->
+            activeDialog = null
+            onDisplayDensityChange(value.toInt())
+        },
+    )
 
     if (showSearchGridColumnsDialog) {
         SearchGridColumnsDialog(
@@ -181,7 +201,7 @@ fun HomeSettingsScreen(
             .animateContentSize(),
         enableItemAnimation = false,
         contentPadding = PaddingValues(vertical = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(HanimeDefaults.settingsItemPadding),
+        verticalArrangement = Arrangement.spacedBy(HanimeDefaults.Spacing.small),
     ) {
         when (page) {
             HomeSettingsPage.VideoPlayback -> {
@@ -272,7 +292,7 @@ fun HomeSettingsScreen(
                             summary = stringResource(R.string.dynamic_color_summary),
                             checked = state.useDynamicColor,
                             enabled = state.dynamicColorEnabled,
-                            iconRes = R.drawable.ic_theme,
+                            iconRes = R.drawable.ic_palette,
                             onCheckedChange = onUseDynamicColorChange,
                         )
                         SettingsAnimatedVisibility(
@@ -297,6 +317,31 @@ fun HomeSettingsScreen(
                             dynamicColor = state.useDynamicColor,
                             darkMode = state.darkMode,
                             onSelect = onAppPaletteStyleChange,
+                        )
+                    }
+                }
+                item {
+                    SettingsSection(stringResource(R.string.app_lang)) {
+                        SettingNavigationItem(
+                            title = stringResource(R.string.app_lang),
+                            summary = stringResource(R.string.app_lang_sum),
+                            valueText = state.appLanguageLabel,
+                            iconRes = R.drawable.ic_setting_lang,
+                            onClick = { activeDialog = HomeSettingsChoiceDialog.AppLanguage },
+                        )
+                    }
+                }
+            }
+
+            HomeSettingsPage.InterfaceInteraction -> {
+                item {
+                    SettingsSection(stringResource(R.string.perception)) {
+                        SettingSwitchItem(
+                            title = stringResource(R.string.haptic_feedback),
+                            summary = stringResource(R.string.haptic_feedback_summary),
+                            checked = state.hapticFeedbackEnabled,
+                            iconRes = R.drawable.ic_mobile_vibrate,
+                            onCheckedChange = onHapticFeedbackChange,
                         )
                     }
                 }
@@ -331,12 +376,25 @@ fun HomeSettingsScreen(
                             iconRes = R.drawable.ic_tablet,
                             onCheckedChange = onTabletModeChange,
                         )
+                        SettingsAnimatedVisibility(visible = state.tabletMode) {
+                            VideoLandscapeLayoutStylePicker(
+                                selectedValue = state.videoLandscapeLayoutStyle,
+                                onSelect = onVideoLandscapeLayoutStyleChange,
+                            )
+                        }
                         SettingSwitchItem(
                             title = stringResource(R.string.enable_check_in_feature),
                             summary = stringResource(R.string.enable_check_in_feature_summary),
                             checked = state.checkInEnabled,
                             iconRes = R.drawable.ic_thumb_up_off_alt,
                             onCheckedChange = onCheckInEnabledChange,
+                        )
+                        SettingSwitchItem(
+                            title = stringResource(R.string.fun_loading_hints),
+                            summary = stringResource(R.string.fun_loading_hints_summary),
+                            checked = state.funLoadingHints,
+                            iconRes = R.drawable.ic_pet_supplies,
+                            onCheckedChange = onFunLoadingHintsChange,
                         )
                         SettingsAnimatedVisibility(visible = state.tabletMode) {
                             SettingNavigationItem(
@@ -359,20 +417,9 @@ fun HomeSettingsScreen(
                         )
                     }
                 }
-                item {
-                    SettingsSection(stringResource(R.string.app_lang)) {
-                        SettingNavigationItem(
-                            title = stringResource(R.string.app_lang),
-                            summary = stringResource(R.string.app_lang_sum),
-                            valueText = state.appLanguageLabel,
-                            iconRes = R.drawable.ic_setting_lang,
-                            onClick = { activeDialog = HomeSettingsChoiceDialog.AppLanguage },
-                        )
-                    }
-                }
             }
 
-            HomeSettingsPage.Privacy -> {
+            HomeSettingsPage.DataPrivacy -> {
                 item {
                     SettingsSection(stringResource(R.string.privacy)) {
                         SettingSwitchItem(
@@ -381,6 +428,13 @@ fun HomeSettingsScreen(
                             checked = state.useLockScreen,
                             iconRes = R.drawable.ic_setting_applock,
                             onCheckedChange = onUseLockScreenChange,
+                        )
+                        SettingSwitchItem(
+                            title = stringResource(R.string.secure_mode),
+                            summary = stringResource(R.string.secure_mode_summary),
+                            checked = state.secureMode,
+                            iconRes = R.drawable.ic_admin_panel_settings,
+                            onCheckedChange = onSecureModeChange,
                         )
                         SettingNavigationItem(
                             title = stringResource(R.string.fake_app_icon),
@@ -398,21 +452,18 @@ fun HomeSettingsScreen(
                         )
                     }
                 }
-            }
-
-            HomeSettingsPage.Data -> {
                 item {
                     SettingsSection(stringResource(R.string.settings_data)) {
                         SettingNavigationItem(
                             title = stringResource(R.string.backup_export_title),
                             summary = stringResource(R.string.backup_export_summary),
-                            iconRes = R.drawable.ic_backup,
+                            iconRes = R.drawable.ic_export,
                             onClick = onExportBackup,
                         )
                         SettingNavigationItem(
                             title = stringResource(R.string.backup_import_title),
                             summary = stringResource(R.string.backup_import_summary),
-                            iconRes = R.drawable.ic_restore,
+                            iconRes = R.drawable.ic_download,
                             onClick = onImportBackup,
                         )
                         SettingNavigationItem(
@@ -420,6 +471,33 @@ fun HomeSettingsScreen(
                             summary = state.cacheSummary,
                             iconRes = R.drawable.ic_clear_all,
                             onClick = onClearCache,
+                        )
+                    }
+                }
+            }
+
+            HomeSettingsPage.DeveloperOptions -> {
+                item {
+                    SettingsSection(stringResource(R.string.developer_options)) {
+                        SettingSwitchItem(
+                            title = stringResource(R.string.always_show_update_card),
+                            summary = stringResource(R.string.simulated_update_data),
+                            checked = state.alwaysShowUpdateCard,
+                            iconRes = R.drawable.ic_security_update,
+                            onCheckedChange = onAlwaysShowUpdateCardChange,
+                        )
+                        SettingNavigationItem(
+                            title = stringResource(R.string.application_dpi),
+                            summary = stringResource(R.string.display_density),
+                            valueText = "${state.displayDensityPercent}%",
+                            iconRes = R.drawable.ic_fullscreen,
+                            onClick = { activeDialog = HomeSettingsChoiceDialog.DisplayDensity },
+                        )
+                        SettingNavigationItem(
+                            title = stringResource(R.string.trigger_crash),
+                            summary = stringResource(R.string.trigger_crash_summary),
+                            iconRes = R.drawable.ic_bug_report,
+                            onClick = onTriggerCrash,
                         )
                     }
                 }
@@ -470,7 +548,7 @@ fun HomeSettingsScreen(
                         SettingNavigationItem(
                             title = stringResource(R.string.open_source_license),
                             summary = stringResource(R.string.open_source_license_summary),
-                            iconRes = R.drawable.ic_xml,
+                            iconRes = R.drawable.ic_gavel,
                             onClick = onOpenOpenSourceLicense,
                         )
                     }
@@ -511,6 +589,8 @@ private fun HomeSettingsScreenPreview() {
             onVideoQualityChange = {},
             onDarkModeChange = {},
             onUseDynamicColorChange = {},
+            onHapticFeedbackChange = {},
+            onFunLoadingHintsChange = {},
             onThemeAccentColorChange = {},
             onAppPaletteStyleChange = {},
             onAllowPipModeChange = {},
@@ -520,12 +600,17 @@ private fun HomeSettingsScreenPreview() {
             onDisableMobileDataWarningChange = {},
             onDisablePredictiveBackChange = {},
             onTabletModeChange = {},
+            onVideoLandscapeLayoutStyleChange = {},
             onCheckInEnabledChange = {},
             onDisableCommentsChange = {},
             onCollapseDownloadedGroupChange = {},
             onSearchGridColumnsConfigChange = {},
             onHorizontalCardCountConfigChange = {},
             onUseLockScreenChange = {},
+            onSecureModeChange = {},
+            onAlwaysShowUpdateCardChange = {},
+            onDisplayDensityChange = {},
+            onTriggerCrash = {},
             onHomeCategoryPreferencesChange = { _, _ -> },
             hKeyframeSettingsContent = {},
             networkSettingsContent = {},
@@ -557,10 +642,14 @@ private fun previewHomeSettingsState() = HomeSettingsUiState(
     disableMobileDataWarning = false,
     disablePredictiveBack = false,
     tabletMode = false,
+    videoLandscapeLayoutStyle = "classic",
     disableComments = false,
     collapseDownloadedGroup = false,
     useDynamicColor = false,
+    hapticFeedbackEnabled = false,
+    funLoadingHints = true,
     useLockScreen = false,
+    secureMode = false,
     fakeLauncherIconName = "Han1meViewer",
     cacheSummary = "12 MB",
     versionSummary = "v26.1.0",
@@ -576,4 +665,6 @@ private fun previewHomeSettingsState() = HomeSettingsUiState(
     homeCategoryOrder = emptyList(),
     hiddenHomeCategoryKeys = emptySet(),
     useAvHomeCategoryTitles = false,
+    alwaysShowUpdateCard = false,
+    displayDensityPercent = 100,
 )

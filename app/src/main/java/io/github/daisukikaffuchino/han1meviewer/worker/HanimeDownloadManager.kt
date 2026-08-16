@@ -7,7 +7,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.await
 import androidx.work.workDataOf
-import io.github.daisukikaffuchino.han1meviewer.Preferences
+import io.github.daisukikaffuchino.han1meviewer.logic.SettingsRepository
 import io.github.daisukikaffuchino.han1meviewer.logic.DatabaseRepo
 import io.github.daisukikaffuchino.han1meviewer.logic.dao.DownloadDatabase
 import io.github.daisukikaffuchino.han1meviewer.logic.entity.download.HanimeDownloadEntity
@@ -47,7 +47,7 @@ object HanimeDownloadManager {
 
     init {
         // 用 Preferences 里的值初始化，保证 0 会被转换成 Int.MAX_VALUE
-        maxConcurrentDownloadCount = Preferences.downloadCountLimit
+        maxConcurrentDownloadCount = SettingsRepository.downloadCountLimit
     }
 
     // Channel 内部状态：保存正在下载任务与等待队列
@@ -285,6 +285,7 @@ object HanimeDownloadManager {
                     HanimeDownloadWorker.HANIME_NAME to args.hanimeName,
                     HanimeDownloadWorker.VIDEO_CODE to args.videoCode,
                     HanimeDownloadWorker.COVER_URL to args.coverUrl,
+                    HanimeDownloadWorker.GROUP_ID to args.groupId,
                     HanimeDownloadWorker.REDOWNLOAD to redownload,
                     HanimeDownloadWorker.IN_WAITING_QUEUE to waiting,
                     HanimeDownloadWorker.DELETE to delete

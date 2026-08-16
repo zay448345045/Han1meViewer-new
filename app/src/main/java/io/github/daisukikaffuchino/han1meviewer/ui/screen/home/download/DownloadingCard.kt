@@ -16,17 +16,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.LoadingIndicator
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
@@ -37,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -48,11 +43,14 @@ import io.github.daisukikaffuchino.han1meviewer.R
 import io.github.daisukikaffuchino.han1meviewer.logic.entity.download.HanimeDownloadEntity
 import io.github.daisukikaffuchino.han1meviewer.logic.state.DownloadState
 import io.github.daisukikaffuchino.han1meviewer.ui.component.CardContainerSurface
+import io.github.daisukikaffuchino.han1meviewer.ui.component.FilledTonalIconButton
+import io.github.daisukikaffuchino.han1meviewer.ui.component.IconButton
 import io.github.daisukikaffuchino.han1meviewer.ui.preview.ComponentPreview
 import io.github.daisukikaffuchino.han1meviewer.ui.preview.fakeHomePageVideos
 import io.github.daisukikaffuchino.han1meviewer.ui.theme.HanimeDefaults
 import io.github.daisukikaffuchino.han1meviewer.ui.theme.shapeByInteraction
-import io.github.daisukikaffuchino.utils.formatFileSizeV2
+import io.github.daisukikaffuchino.utils.VibrationUtil
+import io.github.daisukikaffuchino.utils.formatFileSize
 
 /**
  * 下载中任务卡片。
@@ -72,11 +70,12 @@ fun DownloadingItemCard(
     onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val view = LocalView.current
     val interactionSource = remember { MutableInteractionSource() }
     val indication = LocalIndication.current
     val pressed by interactionSource.collectIsPressedAsState()
     val cardShape = shapeByInteraction(
-        shapes = HanimeDefaults.largerShapes(),
+        shapes = HanimeDefaults.cardShapes(),
         pressed = pressed,
         animationSpec = HanimeDefaults.shapesDefaultAnimationSpec,
     )
@@ -92,7 +91,10 @@ fun DownloadingItemCard(
                     interactionSource = interactionSource,
                     indication = indication,
                     onClick = {},
-                    onLongClick = onDelete,
+                    onLongClick = {
+                        VibrationUtil.performHapticFeedback(view)
+                        onDelete()
+                    },
                 )
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -147,7 +149,10 @@ fun DownloadingItemCard(
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
                             if (item.state == DownloadState.Downloading) {
-                                LoadingIndicator(modifier = Modifier.size(12.dp))
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(10.dp),
+                                    strokeWidth = 1.6.dp
+                                )
                             } else {
                                 Icon(
                                     painter = painterResource(downloadStateIcon(item.state)),
@@ -167,9 +172,10 @@ fun DownloadingItemCard(
                     Text(
                         text = stringResource(
                             R.string.download_progress_size,
-                            item.downloadedLength.formatFileSizeV2(),
-                            item.length.formatFileSizeV2(),
+                            item.downloadedLength.formatFileSize(),
+                            item.length.formatFileSize(),
                         ),
+                        maxLines = 1,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -184,7 +190,7 @@ fun DownloadingItemCard(
                         modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Close,
+                            painter = painterResource(R.drawable.ic_close),
                             contentDescription = stringResource(R.string.cancel_download),
                             modifier = Modifier.size(20.dp),
                             tint = MaterialTheme.colorScheme.outline
@@ -213,7 +219,7 @@ fun DownloadingItemCard(
                                 modifier = Modifier.size(36.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.PlayArrow,
+                                    painter = painterResource(R.drawable.ic_play_arrow),
                                     contentDescription = stringResource(R.string.continues),
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -226,7 +232,7 @@ fun DownloadingItemCard(
                                 modifier = Modifier.size(36.dp)
                             ) {
                                 Icon(
-                                    imageVector = Icons.Default.Refresh,
+                                    painter = painterResource(R.drawable.ic_refresh),
                                     contentDescription = stringResource(R.string.retry),
                                     modifier = Modifier.size(20.dp)
                                 )

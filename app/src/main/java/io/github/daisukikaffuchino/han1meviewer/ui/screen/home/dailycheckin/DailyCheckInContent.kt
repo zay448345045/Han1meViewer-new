@@ -21,7 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+import io.github.daisukikaffuchino.han1meviewer.ui.component.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -80,7 +80,6 @@ fun DailyCheckInContent(
             .fillMaxSize()
             .padding(paddingValues)
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp)
     ) {
         TodayCheckInCard(
             today = uiState.today,
@@ -144,7 +143,7 @@ fun DailyCheckInContent(
             state = pagerState,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(320.dp),
+                .height(336.dp),
             verticalAlignment = Alignment.Top,
             beyondViewportPageCount = 1,
             key = { page -> page }

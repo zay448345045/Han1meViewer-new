@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import kotlin.time.Duration.Companion.milliseconds
 import androidx.compose.foundation.lazy.LazyColumn as FoundationLazyColumn
 import androidx.compose.foundation.lazy.LazyRow as FoundationLazyRow
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid as FoundationLazyVerticalGrid
@@ -44,7 +45,7 @@ fun LazyColumn(
     verticalArrangement: Arrangement.Vertical = if (!reverseLayout) Arrangement.Top else Arrangement.Bottom,
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,
     userScrollEnabled: Boolean = true,
-    enableItemAnimation: Boolean = true,
+    enableItemAnimation: Boolean = false,
     staggerStepMillis: Int = 12,
     maxStaggerIndex: Int = 6,
     content: AnimatedLazyListScope.() -> Unit,
@@ -76,7 +77,7 @@ fun LazyRow(
     horizontalArrangement: Arrangement.Horizontal = if (!reverseLayout) Arrangement.Start else Arrangement.End,
     verticalAlignment: Alignment.Vertical = Alignment.Top,
     userScrollEnabled: Boolean = true,
-    enableItemAnimation: Boolean = true,
+    enableItemAnimation: Boolean = false,
     staggerStepMillis: Int = 12,
     maxStaggerIndex: Int = 6,
     content: AnimatedLazyListScope.() -> Unit,
@@ -109,7 +110,7 @@ fun LazyVerticalGrid(
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
     horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
     userScrollEnabled: Boolean = true,
-    enableItemAnimation: Boolean = true,
+    enableItemAnimation: Boolean = false,
     staggerStepMillis: Int = 12,
     maxStaggerIndex: Int = 6,
     content: AnimatedLazyGridScope.() -> Unit,
@@ -375,7 +376,7 @@ private fun AnimatedLazyItemContainer(
         val clampedIndex = animationIndex.coerceIn(0, maxStaggerIndex)
         val delayMillis = (clampedIndex * staggerStepMillis).coerceAtLeast(0)
         if (delayMillis > 0) {
-            kotlinx.coroutines.delay(delayMillis.toLong())
+            kotlinx.coroutines.delay(delayMillis.toLong().milliseconds)
         }
         visible = true
     }

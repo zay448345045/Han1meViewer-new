@@ -3,15 +3,12 @@ package io.github.daisukikaffuchino.han1meviewer.ui.screen.search
 import android.util.SparseArray
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,39 +21,35 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -65,33 +58,42 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.constrainHeight
+import androidx.compose.ui.unit.constrainWidth
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import io.github.daisukikaffuchino.han1meviewer.Preferences
 import io.github.daisukikaffuchino.han1meviewer.R
+import io.github.daisukikaffuchino.han1meviewer.logic.SettingsRepository
 import io.github.daisukikaffuchino.han1meviewer.logic.entity.SearchHistoryEntity
 import io.github.daisukikaffuchino.han1meviewer.logic.model.HanimeInfo
 import io.github.daisukikaffuchino.han1meviewer.logic.model.HanimeInfo.Companion.NORMAL
 import io.github.daisukikaffuchino.han1meviewer.logic.model.SearchOption
 import io.github.daisukikaffuchino.han1meviewer.logic.state.PageLoadingState
+import io.github.daisukikaffuchino.han1meviewer.ui.component.FilledIconButton
+import io.github.daisukikaffuchino.han1meviewer.ui.component.IconButton
 import io.github.daisukikaffuchino.han1meviewer.ui.component.VideoCardItem
-import io.github.daisukikaffuchino.han1meviewer.ui.component.appbar.HanimeTopAppBar
-import io.github.daisukikaffuchino.han1meviewer.ui.component.appbar.HanimePageSurface
 import io.github.daisukikaffuchino.han1meviewer.ui.component.content.EmptyContent
 import io.github.daisukikaffuchino.han1meviewer.ui.component.lazy.LazyVerticalGrid
 import io.github.daisukikaffuchino.han1meviewer.ui.preview.fakeHomePageVideos
@@ -118,11 +120,9 @@ import kotlin.time.Duration.Companion.milliseconds
 )
 @Composable
 fun SearchScreen(
-    modifier: Modifier = Modifier,
     viewModel: SearchViewModel,
     onBack: () -> Unit,
     onOpenVideo: (String) -> Unit,
-    onLongPressCopy: (String, String) -> Unit,
     onOpenAdvancedSearch: () -> Unit,
     initialQuery: String? = null,
 ) {
@@ -134,7 +134,8 @@ fun SearchScreen(
     var hasSearched by rememberSaveable(initialQuery) { mutableStateOf(false) }
     var isRefreshing by remember { mutableStateOf(false) }
     var isSearchFocused by remember { mutableStateOf(false) }
-    var isCriteriaVisible by rememberSaveable { mutableStateOf(true) }
+    val criteriaCollapsedFraction = rememberSaveable { mutableFloatStateOf(0f) }
+    var criteriaHeightPx by remember { mutableIntStateOf(0) }
     var isLeavingScreen by remember { mutableStateOf(false) }
 
     val refreshState = rememberPullToRefreshState()
@@ -146,7 +147,7 @@ fun SearchScreen(
     val focusMgr = LocalFocusManager.current
     val kb = LocalSoftwareKeyboardController.current
     val scope = rememberCoroutineScope()
-    val showPlayedIndicator = Preferences.showPlayedIndicator
+    val showPlayedIndicator = SettingsRepository.showPlayedIndicator
 
     // 搜索执行
     fun executeSearch() {
@@ -169,6 +170,7 @@ fun SearchScreen(
         if (resetScroll) {
             viewModel.gridFirstVisibleItemIndex = 0
             viewModel.gridFirstVisibleItemScrollOffset = 0
+            criteriaCollapsedFraction.floatValue = 0f
             scope.launch {
                 gridState.scrollToItem(0)
             }
@@ -270,33 +272,24 @@ fun SearchScreen(
     LaunchedEffect(searchState) {
         if (searchState !is PageLoadingState.Loading) isRefreshing = false
     }
-    LaunchedEffect(filter.isNotEmpty()) {
-        if (filter.isNotEmpty()) isCriteriaVisible = true
+    LaunchedEffect(filter.isNotEmpty(), hasSearchResults) {
+        if (!filter.isNotEmpty() || !hasSearchResults) criteriaCollapsedFraction.floatValue = 0f
     }
-    LaunchedEffect(hasSearchResults) {
-        if (!hasSearchResults) isCriteriaVisible = true
-    }
-    LaunchedEffect(gridState, hasSearchResults, filter.isNotEmpty()) {
-        if (!hasSearchResults || !filter.isNotEmpty()) return@LaunchedEffect
 
-        var previousIndex = gridState.firstVisibleItemIndex
-        var previousOffset = gridState.firstVisibleItemScrollOffset
-        snapshotFlow {
-            gridState.firstVisibleItemIndex to gridState.firstVisibleItemScrollOffset
-        }.distinctUntilChanged().collect { (index, offset) ->
-            val movedForward =
-                index > previousIndex || (index == previousIndex && offset > previousOffset)
-            val movedBackward =
-                index < previousIndex || (index == previousIndex && offset < previousOffset)
+    val criteriaScrollEnabled = filter.isNotEmpty() && hasSearchResults && criteriaHeightPx > 0
+    val criteriaNestedScrollConnection = remember(criteriaScrollEnabled, criteriaHeightPx) {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                if (!criteriaScrollEnabled || available.y == 0f) return Offset.Zero
 
-            when {
-                index == 0 && offset == 0 -> isCriteriaVisible = true
-                movedForward -> isCriteriaVisible = false
-                movedBackward -> isCriteriaVisible = true
+                val oldCollapsedPx = criteriaCollapsedFraction.floatValue * criteriaHeightPx
+                val newCollapsedPx = (oldCollapsedPx - available.y)
+                    .coerceIn(0f, criteriaHeightPx.toFloat())
+                if (newCollapsedPx == oldCollapsedPx) return Offset.Zero
+
+                criteriaCollapsedFraction.floatValue = newCollapsedPx / criteriaHeightPx
+                return Offset(x = 0f, y = oldCollapsedPx - newCollapsedPx)
             }
-
-            previousIndex = index
-            previousOffset = offset
         }
     }
 
@@ -331,8 +324,10 @@ fun SearchScreen(
     // 返回键：有焦点时先关键盘
     BackHandler(enabled = isSearchFocused) { focusMgr.clearFocus(); kb?.hide() }
 
-    HanimePageSurface(modifier = modifier) {
-        Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.background)
+    ) {
         SearchAppBar(searchQuery, { searchQuery = it }, onSearch = {
             val q = searchQuery.trim()
             val shouldSearch = q.isNotBlank() || hasAdvancedFilters()
@@ -348,32 +343,33 @@ fun SearchScreen(
             }
         }, ::handleBack, onOpenAdvancedSearch, { isSearchFocused = it }, focusReq)
 
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-        AnimatedVisibility(
-            visible = filter.isNotEmpty() && isCriteriaVisible,
-            enter = fadeIn() + expandVertically(expandFrom = Alignment.Top),
-            exit = fadeOut() + shrinkVertically(shrinkTowards = Alignment.Top),
-        ) {
-            ActiveSearchCriteria(
-                filter = filter,
-                viewModel = viewModel,
-                onClearAll = {
-                    clearSearchCriteria(
-                        clearGenre = true,
-                        clearSort = true,
-                        clearDuration = true,
-                        clearTags = true,
-                        clearBrands = true,
-                        clearBroad = true,
-                    )
-                },
-                onClearGenre = { clearSearchCriteria(clearGenre = true) },
-                onClearSort = { clearSearchCriteria(clearSort = true) },
-                onClearDuration = { clearSearchCriteria(clearDuration = true) },
-                onClearTagCount = { clearSearchCriteria(clearTags = true) },
-                onClearBrandCount = { clearSearchCriteria(clearBrands = true) },
-                onClearBroad = { clearSearchCriteria(clearBroad = true) },
-            )
+        if (filter.isNotEmpty()) {
+            CollapsibleSearchCriteria(
+                collapsedFraction = criteriaCollapsedFraction,
+                onHeightChanged = { criteriaHeightPx = it },
+            ) { criteriaModifier ->
+                ActiveSearchCriteria(
+                    filter = filter,
+                    viewModel = viewModel,
+                    onClearAll = {
+                        clearSearchCriteria(
+                            clearGenre = true,
+                            clearSort = true,
+                            clearDuration = true,
+                            clearTags = true,
+                            clearBrands = true,
+                            clearBroad = true,
+                        )
+                    },
+                    onClearGenre = { clearSearchCriteria(clearGenre = true) },
+                    onClearSort = { clearSearchCriteria(clearSort = true) },
+                    onClearDuration = { clearSearchCriteria(clearDuration = true) },
+                    onClearTagCount = { clearSearchCriteria(clearTags = true) },
+                    onClearBrandCount = { clearSearchCriteria(clearBrands = true) },
+                    onClearBroad = { clearSearchCriteria(clearBroad = true) },
+                    modifier = criteriaModifier,
+                )
+            }
         }
 
         PullToRefreshBox(
@@ -383,7 +379,9 @@ fun SearchScreen(
                 doSearch()
             },
             state = refreshState,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(criteriaNestedScrollConnection),
             indicator = {
                 PullToRefreshDefaults.LoadingIndicator(
                     state = refreshState,
@@ -405,7 +403,6 @@ fun SearchScreen(
                         searchState,
                         showPlayedIndicator,
                         onOpenVideo,
-                        onLongPressCopy,
                         { viewModel.page++; executeSearch() },
                         searchState !is PageLoadingState.NoMoreData,
                         gridState
@@ -435,7 +432,6 @@ fun SearchScreen(
                 }
             }
         }
-        }
     }
 }
 
@@ -446,98 +442,101 @@ fun SearchScreen(
 
 @Composable
 fun SearchAppBar(
-    query: String, onQueryChange: (String) -> Unit, onSearch: () -> Unit,
-    onBack: () -> Unit, onOpenAdvancedSearch: () -> Unit,
-    onFocusChanged: (Boolean) -> Unit, focusRequester: FocusRequester,
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onSearch: () -> Unit,
+    onBack: () -> Unit,
+    onOpenAdvancedSearch: () -> Unit,
+    onFocusChanged: (Boolean) -> Unit,
+    focusRequester: FocusRequester,
     modifier: Modifier = Modifier
 ) {
     val kb = LocalSoftwareKeyboardController.current
-    HanimeTopAppBar(
-        title = {
-            BasicTextField(
-                value = query,
-                onValueChange = onQueryChange,
+    Surface(
+        color =
+            MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(32.dp),
+        shadowElevation = 4.dp,
+        modifier = modifier
+            .fillMaxWidth()
+            .statusBarsPadding()
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        Surface(
+            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+            shape = RoundedCornerShape(28.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp)
-                    .focusRequester(focusRequester)
-                    .onFocusChanged { onFocusChanged(it.isFocused) },
-                singleLine = true,
-                textStyle = LocalTextStyle.current.copy(
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 14.sp
-                ),
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Search
-                ),
-                keyboardActions = KeyboardActions(
-                    onSearch = {
-                        kb?.hide()
-                        onSearch()
-                    }
-                ),
-                decorationBox = { innerTextField ->
-                    TextFieldDefaults.DecorationBox(
-                        value = query,
-                        innerTextField = innerTextField,
-                        enabled = true,
-                        singleLine = true,
-                        visualTransformation = VisualTransformation.None,
-                        interactionSource = remember { MutableInteractionSource() },
-                        placeholder = {
-                            Text(stringResource(R.string.search_video_hint))
-                        },
-                        trailingIcon = {
-                            if (query.isNotEmpty()) {
-                                IconButton(onClick = { onQueryChange("") }) {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = stringResource(R.string.clear)
-                                    )
-                                }
-                            }
-                        },
-                        shape = CircleShape,
-                        contentPadding = PaddingValues(
-                            horizontal = 16.dp,
-                            vertical = 0.dp
-                        ),
-                        colors = TextFieldDefaults.colors(
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent,
-                            errorIndicatorColor = Color.Transparent
-                        ),
-                        container = {
-                            TextFieldDefaults.Container(
-                                enabled = true,
-                                isError = false,
-                                interactionSource = remember { MutableInteractionSource() },
-                                colors = TextFieldDefaults.colors(),
-                                shape = CircleShape,
-                                focusedIndicatorLineThickness = 0.dp,
-                                unfocusedIndicatorLineThickness = 0.dp,
-                            )
-                        }
+                    .padding(horizontal = 4.dp, vertical = 4.dp)
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(
+                        painterResource(R.drawable.ic_arrow_back),
+                        contentDescription = stringResource(R.string.back),
+                        tint = MaterialTheme.colorScheme.onSurface
                     )
                 }
-            )
-        },
-        onBack = onBack,
-        modifier = modifier,
-        actions = {
-            TextButton(
-                onClick = onOpenAdvancedSearch
-            ) {
-                Icon(
-                    Icons.Default.Tune,
-                    contentDescription = stringResource(R.string.advanced)
-                )
-                Spacer(modifier = Modifier.width(4.dp))
-                Text(stringResource(R.string.advanced))
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(48.dp)
+                        .focusRequester(focusRequester)
+                ) {
+                    BasicTextField(
+                        value = query,
+                        onValueChange = onQueryChange,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .onFocusChanged { onFocusChanged(it.isFocused) }
+                            .padding(horizontal = 12.dp),
+                        singleLine = true,
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(onSearch = {
+                            kb?.hide()
+                            onSearch()
+                        }),
+                        decorationBox = { inner ->
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                if (query.isEmpty()) {
+                                    Text(
+                                        text = stringResource(R.string.search_video_hint),
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                inner()
+                            }
+                        })
+                }
+                if (query.isNotEmpty()) {
+                    IconButton(onClick = { onQueryChange("") }) {
+                        Icon(
+                            painterResource(R.drawable.ic_close),
+                            contentDescription = stringResource(R.string.clear_checkin),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                FilledIconButton(onClick = onOpenAdvancedSearch) {
+                    Icon(
+                        painterResource(R.drawable.ic_filter_list),
+                        contentDescription = stringResource(R.string.advanced_search)
+                    )
+                }
             }
-        },
-    )
+        }
+    }
 }
 
 // ─────────────────────────────────────────────
@@ -570,7 +569,7 @@ fun SearchHistoryList(
                         .padding(horizontal = 16.dp, vertical = 10.dp)
                 ) {
                     Icon(
-                        Icons.Default.Search,
+                        painter = painterResource(R.drawable.ic_search),
                         null,
                         Modifier.size(18.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -589,8 +588,8 @@ fun SearchHistoryList(
                         modifier = Modifier.size(32.dp)
                     ) {
                         Icon(
-                            Icons.Default.Close,
-                            "删除",
+                            painter = painterResource(R.drawable.ic_close),
+                            stringResource(R.string.delete),
                             Modifier.size(16.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -609,7 +608,7 @@ fun SearchHistoryList(
 fun SearchResultsGrid(
     videos: List<HanimeInfo>, state: PageLoadingState<*>, showPlayedIndicator: Boolean,
     onVideoClick: (String) -> Unit,
-    onVideoLongClick: (String, String) -> Unit, onLoadMore: () -> Unit,
+    onLoadMore: () -> Unit,
     canLoadMore: Boolean, gridState: LazyGridState, modifier: Modifier = Modifier
 ) {
     var isLoadingMore by remember { mutableStateOf(false) }
@@ -630,8 +629,8 @@ fun SearchResultsGrid(
         val density = LocalDensity.current
         val screenWidthDp =
             with(density) { LocalWindowInfo.current.containerSize.width.toDp().value.toInt() }
-        val columns = if (Preferences.tabletMode) {
-            GridCells.Fixed(Preferences.searchGridColumnsConfig.columnsForWidthDp(screenWidthDp))
+        val columns = if (SettingsRepository.tabletMode) {
+            GridCells.Fixed(SettingsRepository.searchGridColumnsConfig.columnsForWidthDp(screenWidthDp))
         } else {
             GridCells.Adaptive(
                 minSize = if (useNormalGrid) normalCardWidth else simplifiedCardWidth,
@@ -652,6 +651,7 @@ fun SearchResultsGrid(
                     videoItem = it,
                     isHorizontalCard = it.itemType == NORMAL,
                     isWatched = showPlayedIndicator && it.watched == true,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                     onClickVideosItem = onVideoClick,
                     onLongClickVideosItem = { _, _ -> }
                 )
@@ -741,6 +741,36 @@ data class SearchFilter(
                 tagCount > 0 ||
                 brandCount > 0 ||
                 broad
+}
+
+@Composable
+private fun CollapsibleSearchCriteria(
+    collapsedFraction: State<Float>,
+    onHeightChanged: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable (Modifier) -> Unit,
+) {
+    Layout(
+        content = {
+            content(Modifier.onSizeChanged { onHeightChanged(it.height) })
+        },
+        modifier = modifier.clipToBounds(),
+    ) { measurables, constraints ->
+        val placeable = measurables.single().measure(
+            constraints.copy(minHeight = 0, maxHeight = Constraints.Infinity)
+        )
+        val collapsedHeight = (placeable.height * collapsedFraction.value)
+            .toInt()
+            .coerceIn(0, placeable.height)
+        val visibleHeight = placeable.height - collapsedHeight
+
+        layout(
+            width = constraints.constrainWidth(placeable.width),
+            height = constraints.constrainHeight(visibleHeight),
+        ) {
+            placeable.placeRelative(x = 0, y = -collapsedHeight)
+        }
+    }
 }
 
 @Composable
@@ -876,7 +906,6 @@ private fun SearchResultsGridPreview() {
             PageLoadingState.Success(fakeHomePageVideos),
             true,
             {},
-            { _, _ -> },
             {},
             true,
             rememberLazyGridState()

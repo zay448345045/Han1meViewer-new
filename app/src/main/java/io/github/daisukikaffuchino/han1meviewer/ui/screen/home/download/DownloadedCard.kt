@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,11 +21,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.Button
+import io.github.daisukikaffuchino.han1meviewer.ui.component.HapticButton as Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledIconButton
+import io.github.daisukikaffuchino.han1meviewer.ui.component.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -38,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -54,7 +56,8 @@ import io.github.daisukikaffuchino.han1meviewer.ui.preview.ComponentPreview
 import io.github.daisukikaffuchino.han1meviewer.ui.preview.fakeDownloadedNodes
 import io.github.daisukikaffuchino.han1meviewer.ui.theme.HanimeDefaults
 import io.github.daisukikaffuchino.han1meviewer.ui.theme.shapeByInteraction
-import io.github.daisukikaffuchino.utils.formatFileSizeV2
+import io.github.daisukikaffuchino.utils.formatFileSize
+import io.github.daisukikaffuchino.utils.VibrationUtil
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
 import kotlinx.datetime.toLocalDateTime
@@ -75,11 +78,12 @@ fun DownloadGroupHeader(
     onToggle: () -> Unit,
     onRename: () -> Unit,
 ) {
+    val view = LocalView.current
     val interactionSource = remember { MutableInteractionSource() }
     val indication = LocalIndication.current
     val pressed by interactionSource.collectIsPressedAsState()
     val cardShape = shapeByInteraction(
-        shapes = HanimeDefaults.largerShapes(),
+        shapes = HanimeDefaults.cardShapes(),
         pressed = pressed,
         animationSpec = HanimeDefaults.shapesDefaultAnimationSpec,
     )
@@ -92,8 +96,14 @@ fun DownloadGroupHeader(
                 .combinedClickable(
                     interactionSource = interactionSource,
                     indication = indication,
-                    onClick = onToggle,
-                    onLongClick = onRename,
+                    onClick = {
+                        VibrationUtil.performHapticFeedback(view)
+                        onToggle()
+                    },
+                    onLongClick = {
+                        VibrationUtil.performHapticFeedback(view)
+                        onRename()
+                    },
                 )
                 .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -121,7 +131,10 @@ fun DownloadGroupHeader(
                 )
             }
             AssistChip(
-                onClick = onToggle,
+                onClick = {
+                    VibrationUtil.performHapticFeedback(view)
+                    onToggle()
+                },
                 label = {
                     Text(
                         if (header.isExpanded) stringResource(R.string.collapse)
@@ -167,6 +180,7 @@ fun DownloadedVideoCard(
     isSelected: Boolean = false,
     onToggleSelect: (() -> Unit)? = null,
 ) {
+    val view = LocalView.current
     val addedTime = if (!LocalInspectionMode.current) {
         remember(item.video.addDate) {
             Instant.fromEpochMilliseconds(item.video.addDate)
@@ -180,7 +194,7 @@ fun DownloadedVideoCard(
     val indication = LocalIndication.current
     val pressed by interactionSource.collectIsPressedAsState()
     val cardShape = shapeByInteraction(
-        shapes = HanimeDefaults.largerShapes(),
+        shapes = HanimeDefaults.cardShapes(),
         pressed = pressed,
         animationSpec = HanimeDefaults.shapesDefaultAnimationSpec,
     )
@@ -193,6 +207,7 @@ fun DownloadedVideoCard(
                 interactionSource = interactionSource,
                 indication = indication,
                 onClick = {
+                    VibrationUtil.performHapticFeedback(view)
                     if (isMultiSelect) {
                         onToggleSelect?.invoke()
                     } else {
@@ -200,7 +215,10 @@ fun DownloadedVideoCard(
                     }
                 },
                 onLongClick = {
-                    if (!isMultiSelect) onMoveGroup()
+                    if (!isMultiSelect) {
+                        VibrationUtil.performHapticFeedback(view)
+                        onMoveGroup()
+                    }
                 },
             ),
         ) {
@@ -218,9 +236,9 @@ fun DownloadedVideoCard(
                         placeholder = painterResource(R.drawable.h_chan_loading),
                         error = painterResource(R.drawable.h_chan_load_failed),
                         modifier = Modifier
-                            .width(150.dp)
+                            .width(136.dp)
                             .fillMaxHeight()
-                            .clip(RoundedCornerShape(18.dp)),
+                            .clip(RoundedCornerShape(12.dp)),
                         contentScale = ContentScale.Crop,
                     )
                     if (isMultiSelect) {
@@ -236,7 +254,10 @@ fun DownloadedVideoCard(
                         ) {
                             Checkbox(
                                 checked = isSelected,
-                                onCheckedChange = { onToggleSelect?.invoke() },
+                                onCheckedChange = {
+                                    VibrationUtil.performHapticFeedback(view)
+                                    onToggleSelect?.invoke()
+                                },
                                 modifier = Modifier.size(32.dp),
                             )
                         }
@@ -262,20 +283,28 @@ fun DownloadedVideoCard(
                         overflow = TextOverflow.Ellipsis,
                     )
                     Row(
+                        modifier = Modifier.height(36.dp),
                         horizontalArrangement = Arrangement.spacedBy(6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        AssistChip(
-                            onClick = onOpenVideo,
-                            label = { Text(item.video.videoCode) },
-                            colors = AssistChipDefaults.assistChipColors(
-                                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                                labelColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                            ),
-                        )
+                        Surface(
+                            onClick = {
+                                VibrationUtil.performHapticFeedback(view)
+                                onOpenVideo()
+                            },
+                            shape = MaterialTheme.shapes.small,
+                            color = MaterialTheme.colorScheme.tertiaryContainer
+                        ) {
+                            Text(
+                                text = "ID:${item.video.videoCode}",
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
                         Text(
                             text = item.video.quality,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         VerticalDivider(
@@ -284,8 +313,8 @@ fun DownloadedVideoCard(
                             color = MaterialTheme.colorScheme.outline,
                         )
                         Text(
-                            text = item.video.length.formatFileSizeV2(),
-                            style = MaterialTheme.typography.bodyMedium,
+                            text = item.video.length.formatFileSize(),
+                            style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -294,31 +323,23 @@ fun DownloadedVideoCard(
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(
+                FilledIconButton(
                     onClick = onDeleteVideo,
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.textButtonColors(),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                    modifier = Modifier.padding(8.dp)
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_delete),
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Text(stringResource(R.string.delete))
-                    }
+                    Icon(
+                        painter = painterResource(R.drawable.ic_delete),
+                        contentDescription = stringResource(R.string.delete)
+                    )
                 }
 
                 Button(
                     onClick = onExternalPlayback,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.textButtonColors(),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                    contentPadding = PaddingValues(8.dp),
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -337,7 +358,7 @@ fun DownloadedVideoCard(
                     onClick = onLocalPlayback,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.textButtonColors(),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                    contentPadding = PaddingValues(8.dp),
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),

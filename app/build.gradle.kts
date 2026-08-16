@@ -9,9 +9,8 @@ plugins {
     alias(libs.plugins.org.jetbrains.kotlin.plugin.serialization)
     alias(libs.plugins.com.google.devtools.ksp)
     alias(libs.plugins.compose.compiler)
-    //noinspection NewerVersionAvailable
-    id("com.mikepenz.aboutlibraries.plugin") version "14.2.0"
-    id("com.github.ben-manes.versions") version "0.54.0"
+    id("com.mikepenz.aboutlibraries.plugin") version "15.0.4"
+    id("com.github.ben-manes.versions") version "0.59.0"
 }
 
 android {
@@ -21,8 +20,8 @@ android {
         applicationId = "io.github.daisukikaffuchino.han1meviewer"
         minSdk = 29
         targetSdk = 37
-        versionCode = 260723
-        versionName = "26.2.1"
+        versionCode = 260805
+        versionName = "26.3.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -94,6 +93,12 @@ android {
         generateLocaleConfig = true
     }
 
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
 }
 
 kotlin {
@@ -121,8 +126,7 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.documentfile)
     implementation(libs.androidx.glance.appwidget)
-    implementation(libs.startup.runtime)
-    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.datastore.preferences)
 
     implementation(libs.bundles.android.base)
     implementation(libs.bundles.android.jetpack)
@@ -132,10 +136,12 @@ dependencies {
     implementation(libs.compose.material3)
     implementation(libs.androidx.activity.compose)
     implementation(libs.lifecycle.viewmodel.compose)
+    implementation(libs.lifecycle.viewmodel.navigation3)
     implementation(libs.compose.ui.ui.tooling.preview)
     implementation(libs.androidx.ui)
     debugImplementation(libs.compose.ui.ui.tooling)
-    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.ui)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
     implementation(libs.aboutlibraries.compose.m3)
@@ -154,12 +160,10 @@ dependencies {
 
     implementation(libs.coil)
 
-    implementation(libs.jiaozi.video.player)
     implementation(libs.media3.exoplayer)
     implementation(libs.media3.exoplayer.hls)
+    implementation(libs.media3.cast)
     implementation(libs.mpv.lib)
-
-    implementation(libs.spannable.x)
 
     ksp(libs.room.compiler)
 

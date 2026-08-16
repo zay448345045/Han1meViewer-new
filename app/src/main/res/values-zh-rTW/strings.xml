@@ -39,7 +39,9 @@
     <string name="comment_not_found">找不到留言</string>
     <string name="hanime_list">新番列表</string>
     <string name="latest_hanime_list_monthly">%s 里番新番列表</string>
-    <string name="preview_page_updating_getchu_hint">網站正在更新新番預告頁面，可先查看 Getchu 新番預告。Getchu 可能需要 VPN 才能正常存取。</string>
+    <string name="preview_discontinued_notice">自 2026 年 5 月開始，Hanime1 站方的新番預告已經停更。可選擇查看 Getchu 新番預告，可能需要 VPN 才能正常存取。</string>
+    <string name="preview_month_not_updated">站方沒有更新該月度的新番預告</string>
+    <string name="visit_web_version">造訪網頁版</string>
     <string name="latest_hanime_comment">%s 新番留言區</string>
     <string name="view_getchu_preview">查看 Getchu 預告</string>
     <string name="getchu_preview">Getchu 新番預告</string>
@@ -92,10 +94,14 @@
     <string name="playlist_description">介紹</string>
     <string name="add_to_playlist">加入清單</string>
     <string name="no_custom_playlist_hint">尚未建立自訂清單。你可以前往側邊欄的「播放清單」建立自訂清單。</string>
-    <string name="select_at_least_one_playlist">請至少選擇一個清單</string>
     <string name="player_settings">播放器設定</string>
     <string name="tablet_mode">平板模式</string>
     <string name="tablet_mode_summary">開啟後影片頁面將以平板版面顯示，提供更大的觀看區域</string>
+    <string name="large_screen_tablet_mode_hint">大螢幕裝置可前往「設定 - 介面互動」開啟「平板模式」，體驗更佳哦～</string>
+    <string name="video_landscape_layout_style">播放頁橫向版面樣式</string>
+    <string name="video_landscape_layout_style_summary">選擇橫向播放頁中播放器、分頁與推薦內容的排列方式</string>
+    <string name="layout_style_classic">經典</string>
+    <string name="layout_style_dual_pane">雙欄</string>
     <string name="search_grid_columns_title">影片網格欄數</string>
     <string name="search_grid_columns_summary">僅在平板模式下生效，可依照螢幕寬度調整搜尋、稍後觀看、喜愛影片與訂閱頁面的欄數</string>
     <string name="search_grid_columns_dialog_hint">依照不同螢幕寬度設定影片網格欄數</string>
@@ -213,7 +219,7 @@
     <string name="sure_to_add_to_h_keyframe">確定要將目前時間點加入關鍵 H 幀嗎？</string>
     <string name="current_position_d_ms">目前時間點：%dms</string>
     <string name="pause_then_long_press">請先暫停再長按</string>
-    <string name="long_press_to_add_h_keyframe">請長按🥵新增關鍵 H 幀</string>
+    <string name="long_press_to_add_h_keyframe">請長按按鈕新增關鍵 H 幀</string>
     <string name="video_deleted_sure_to_delete_item">影片已被刪除或移動，是否刪除此項目？</string>
     <string name="delete_failed">刪除失敗</string>
     <string name="delete_fav">移除喜愛</string>
@@ -264,6 +270,7 @@
     <string name="name_with_colon">名稱：</string>
     <string name="quality_with_colon">畫質：</string>
     <string name="after_download_tips">下載完成後，可以在「下載」頁面找到下載後的影片，「設定」頁面中有詳細儲存路徑</string>
+    <string name="auto_create_same_name_download_group">自動建立同名分組</string>
     <string name="restart_or_not_working">修改 %s 需要重新啟動程式，否則不會生效！</string>
     <string name="restart_needed">需要重新啟動程式，否則不會生效！</string>
     <string name="sure_to_clear">確定要清除嗎？</string>
@@ -279,9 +286,10 @@
     <string name="low">低</string>
     <string name="very_low">很低</string>
     <string name="extremely_low">極低</string>
+    <string name="slightly_high">稍高</string>
+    <string name="extremely_high">極高</string>
     <string name="shared_h_keyframe_detected_msg">注意：如果你也有與對方相同代號的關鍵 H 幀，你自己的資料將會被覆蓋\n\n標題：%1$s\n代號：%2$s\n共有 %3$d 個時間點</string>
     <string name="domain_change_tips">修改網域需要重新啟動程式，否則不會生效！\n不同網域不共用 Cookie，因此更換網域後需要重新登入。\n所以除了 hanime1.me 以外的網域可能在某些時段重新導向回 hanime1.me，這可能導致 Cookie 失效\n\n建議如下：\n· 無 VPN 使用者，使用 hanime1.me 並開啟內建 Hosts\n· 日本使用者，使用 hanime1.com\n· 其他地區使用者，使用 hanime1.me 並關閉內建 Hosts</string>
-    <string name="website_blocked_msg">看到這裡表示他們的網站已經加固，只能聽天由命看看能否恢復了…</string>
     <string name="not_logged_in_currently">目前未登入</string>
     <string name="login_state_expired">登入狀態已失效，已自動登出，請重新登入</string>
     <string name="parse_error_msg">這個網址可能有不同的解析方式…</string>
@@ -306,12 +314,26 @@
     <string name="custom">自訂</string>
     <string name="show_bottom_progress">顯示底部進度條</string>
     <string name="default_playback_speed">預設播放速度</string>
-    <string name="long_press_speed_multiplier">長按快進速度為目前速度的</string>
+    <string name="long_press_speed_multiplier">長按快進速度</string>
+    <string name="long_press_speed_summary">目前速度的 %1$s</string>
+    <string name="haptic_feedback">觸感回饋</string>
+    <string name="haptic_feedback_summary">為部分操作提供震動回饋</string>
+    <string name="secure_mode">安全模式</string>
+    <string name="secure_mode_summary">阻止截圖並保護背景預覽圖</string>
+    <string name="fun_loading_hints">更有趣的載入文案</string>
+    <string name="fun_loading_hints_summary">今天也很可愛哦~</string>
     <string name="slide_sensitivity">滑動調整進度的靈敏度</string>
     <string name="apply_deep_links">套用深層連結</string>
     <string name="apply_deep_links_summary">套用後，開啟相關網頁時可快速跳轉至此 App</string>
     <string name="apply_deep_links_tips">MIUI 隱藏了此介面，因此你需要從這裡開啟並新增連結</string>
     <string name="switch_player_kernel">切換播放器核心</string>
+    <string name="enable_google_cast">啟用 Google Cast</string>
+    <string name="enable_google_cast_summary">可以讓你在 Android TV 等支援的裝置上進行投放</string>
+    <string name="google_cast_unavailable_summary">此裝置缺少 Google Play 服務，無法使用 Google Cast</string>
+    <string name="google_cast_warning">由於並不依賴手機持續傳輸畫面，傳送端的 Cloudflare 驗證、VPN 和 Hosts 等設定對接收端完全不起作用。除非你設定了全域軟路由，能讓接收端裝置自動走代理通道，否則不要嘗試播放需要 Cloudflare 驗證的影片來源，投放必然失敗。</string>
+    <string name="player_settings_controls">播放器控制</string>
+    <string name="player_settings_casting">投放</string>
+    <string name="settings_tip">提示：</string>
     <string name="switch_to_year">切換至年份</string>
     <string name="switch_to_year_month">切換至年月</string>
     <string name="subscribe">追蹤</string>
@@ -322,8 +344,6 @@
     <string name="sure_to_redownload">確定要重新下載嗎？</string>
     <string name="privacy">隱私</string>
     <string name="refresh_page_or_login_expired">重新整理頁面試試\n也可能登入已過期</string>
-    <string name="website_blocked_msg_2">網站已加固，修改成其他網域可能會有奇效！</string>
-    <string name="website_blocked_msg_3">可以提醒開發者，但不要催促，網站加固與他沒有任何關係哦～</string>
     <string name="action_not_support">此裝置不支援此操作</string>
     <string name="download_settings">下載設定</string>
     <string name="download_count_limit">同時下載數量限制</string>
@@ -343,6 +363,18 @@
     <string name="usage_notice_accept">我已閱讀並同意</string>
     <string name="usage_notice_accept_countdown">請閱讀 %1$d 秒</string>
     <string name="usage_notice_decline">不同意並退出</string>
+    <string name="app_source_title">你是從哪裡下載的app？請慎重選擇！</string>
+    <string name="app_source_forum">論壇</string>
+    <string name="app_source_telegram">Telegram</string>
+    <string name="app_source_github">GitHub</string>
+    <string name="app_source_qq_group">QQ群</string>
+    <string name="app_source_wechat">微信公眾號</string>
+    <string name="app_source_douyin_tiktok">抖音/TikTok</string>
+    <string name="app_source_confirm">繼續</string>
+    <string name="app_source_illegal_title">你的app來源非法</string>
+    <string name="app_source_illegal_message">本app從未在你選擇的通路發佈。禁止在公開渠道宣傳，不允許搬運、引流、倒賣以及自稱官方的行為。請輸入完整倉庫連結以完成驗證，連結校驗不區分大小寫。</string>
+    <string name="app_source_repository_link">完整倉庫連結</string>
+    <string name="app_source_verify">驗證並進入</string>
     <string name="app_lang">語言</string>
     <string name="app_lang_sum">選擇應用程式語言</string>
     <string name="auth_request">請驗證身分</string>
@@ -353,6 +385,8 @@
     <string name="default_video_quilty">預設解析度</string>
     <string name="my_subscribe">我的訂閱</string>
     <string name="subscribed_artists_count">已追蹤作者（%1$d）</string>
+    <string name="subscription_artist_rows">訂閱作者行數</string>
+    <string name="subscription_artist_rows_option">%1$d 行</string>
     <string name="swipe_more">向右滑動</string>
     <string name="my_account">我的</string>
     <string name="username">使用者名稱</string>
@@ -524,6 +558,7 @@
     <string name="create_new_group">建立新分組</string>
     <string name="create_group_success">建立成功！%s</string>
     <string name="disable_mobile_data_warning">關閉流量提醒</string>
+    <string name="mobile_data_playback_warning">目前正在使用行動網路，繼續播放可能產生流量費用。是否繼續？</string>
     <string name="disable_mobile_data_warning_summary">開啟後，使用行動數據播放時將不再提醒</string>
     <string name="mpv_socks5_warning">注意：MPV 播放核心不支援 Socks 代理，可能會導致播放失敗</string>
     <string name="warning">警告</string>
@@ -602,6 +637,7 @@
     <string name="invalid_ip_or_port">無效的 IPv4 位址或連接埠 (0..65535)</string>
     <string name="click_to_restart">點擊重新開始</string>
     <string name="replay">重播</string>
+    <string name="playback_finished">影片播放完畢</string>
     <string name="video_loading_failed">影片載入失敗</string>
     <string name="update_available_title">發現新版本 %1$s</string>
     <string name="force_update_notice">本次為強制更新</string>
@@ -615,12 +651,37 @@
     <string name="settings_network_download">網路和下載</string>
     <string name="settings_network_download_summary">連線、網域、下載儲存與限制</string>
     <string name="settings_appearance">主題與外觀</string>
-    <string name="settings_appearance_summary">顏色、深色模式、版面與語言</string>
+    <string name="settings_appearance_summary">顏色、深色模式與語言</string>
+    <string name="settings_interface_interaction">介面互動</string>
+    <string name="settings_interface_interaction_summary">觸感回饋、版面與內容顯示</string>
     <string name="settings_layout_content">版面與內容</string>
     <string name="settings_privacy_summary">應用程式鎖、桌面偽裝與內容顯示</string>
     <string name="settings_data">資料</string>
     <string name="settings_data_summary">備份、還原與快取資料</string>
+    <string name="settings_data_privacy">資料和隱私</string>
+    <string name="settings_data_privacy_summary">隱私保護、備份、還原與快取資料</string>
     <string name="settings_about_summary">版本、開源授權與專案連結</string>
+    <string name="developer_options">開發者選項</string>
+    <string name="developer_options_summary">僅用於除錯的工具與介面模擬</string>
+    <string name="always_show_update_card">一律顯示更新卡片</string>
+    <string name="simulated_update_data">模擬的更新資料</string>
+    <string name="application_dpi">應用程式 DPI 調節</string>
+    <string name="display_density">顯示密度</string>
+    <string name="trigger_crash">主動崩潰</string>
+    <string name="trigger_crash_summary">立即拋出未捕獲例外，用於測試崩潰處理</string>
+    <string name="crash_page_title">Han1meViewer 發生崩潰</string>
+    <string name="crash_unexpected_title">發生了問題</string>
+    <string name="crash_unexpected_message">Han1meViewer 遇到了未處理的錯誤。你可以在重新啟動前複製以下診斷記錄。</string>
+    <string name="crash_actions">操作</string>
+    <string name="crash_copy_log">複製崩潰記錄</string>
+    <string name="crash_copy_log_summary">將裝置與例外資訊複製到剪貼簿</string>
+    <string name="crash_restart_app">重新啟動應用程式</string>
+    <string name="crash_restart_app_summary">關閉異常程序並重新開啟 Han1meViewer</string>
+    <string name="crash_exit_app">退出應用程式</string>
+    <string name="crash_exit_app_summary">關閉崩潰報告且不重新啟動</string>
+    <string name="crash_log_title">崩潰記錄</string>
+    <string name="crash_no_logs">沒有可用的崩潰記錄。</string>
+    <string name="simulated_update_description">這是用於除錯首頁更新卡片的模擬資料。</string>
     <string name="accent_color">強調色</string>
     <string name="display">顯示</string>
     <string name="preset_color_scheme">預設配色</string>
@@ -639,4 +700,35 @@
     <string name="no_license_items">沒有可顯示的項目</string>
     <string name="no_licenses_found">找不到項目</string>
     <string name="global_search">全站搜尋</string>
+    <string name="player_h_keyframe">關鍵H幀</string>
+    <string name="h_keyframes_not_enabled">尚未啟用關鍵H幀</string>
+    <string name="player_auto_quality">自動</string>
+    <string name="player_time_format">%1$s / %2$s</string>
+    <string name="player_speed_format">%1$sx</string>
+    <string name="player_keyframe_index">#%1$d</string>
+    <string name="player_keyframe_option">#%1$d %2$s</string>
+    <string name="player_progress_percent">%1$d%%</string>
+    <string name="player_gesture_brightness">亮度</string>
+    <string name="player_gesture_volume">音量</string>
+    <string name="player_gesture_progress">進度</string>
+    <string name="player_play_from_beginning">從頭開始播放</string>
+    <string name="player_untitled_video">未命名影片</string>
+    <string name="player_cast_device">Google Cast</string>
+    <string name="player_casting_to">正在投放至 %1$s</string>
+    <string name="perception">感知</string>
+    <string-array name="loading_hints">
+        <item>哼！才、才沒有讓你等很久啦！是路由器剛打了個噴嚏啦……</item>
+        <item>笨蛋！一直盯著它看也不會變快啦！……好啦，再給我三秒就好！</item>
+        <item>（慌慌張張藏起洋芋片袋）被…被發現了呢！等我吞下這口就來！</item>
+        <item>嗚哇！前面的數據線好像偷偷私奔纏在一起了！正在拆散它們！</item>
+        <item>正在把快樂打包成壓縮檔傳送給你……預估解壓時間：馬上！</item>
+        <item>進度條正在偷吃提拉米蘇，目前進度：底層餅乾碎已吃完！</item>
+        <item>隱藏著黑暗力量的進度條啊，在我面前用你真正的速度（劃掉）……還是用現在的速度吧！</item>
+        <item>正在捕捉異世界電波……嗶嗶——訊號強度滿格，但貓貓把線咬斷了，稍等！</item>
+        <item>知道你急，但先別急嘛~ 趁現在眨眨眼，把脖子向左扭三圈……對，就是這樣！</item>
+        <item>發動魔法卡：強欲之壺！……糟糕，抽到了更多的載入時間，對不起嘛！</item>
+        <item>您的載入請求已被勇者小隊插隊處理，目前排名：第0位（VIP通道）！</item>
+        <item>搓手手期待到手指都冒煙啦……</item>
+        <item>◝(⑅•ᴗ•⑅)◜..°♡ 正在把這份可愛傳送給你，請簽收~</item>
+    </string-array>
 </resources>

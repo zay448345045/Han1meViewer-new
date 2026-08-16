@@ -1,5 +1,6 @@
 package io.github.daisukikaffuchino.han1meviewer.ui.navigation.main
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -17,18 +18,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.daisukikaffuchino.han1meviewer.PREVIEW_COMMENT_PREFIX
-import io.github.daisukikaffuchino.han1meviewer.Preferences
+import io.github.daisukikaffuchino.han1meviewer.logic.SettingsRepository
 import io.github.daisukikaffuchino.han1meviewer.R
 import io.github.daisukikaffuchino.han1meviewer.logic.state.WebsiteState
 import io.github.daisukikaffuchino.han1meviewer.ui.activity.MainActivity
-import io.github.daisukikaffuchino.han1meviewer.ui.component.BottomSheetHandler
 import io.github.daisukikaffuchino.han1meviewer.ui.component.appbar.HanimeScaffold
 import io.github.daisukikaffuchino.han1meviewer.ui.screen.video.ChildCommentScreen
 import io.github.daisukikaffuchino.han1meviewer.ui.screen.video.CommentMessage
 import io.github.daisukikaffuchino.han1meviewer.ui.screen.video.CommentScreen
+import io.github.daisukikaffuchino.han1meviewer.ui.theme.HanimeDefaults
 import io.github.daisukikaffuchino.han1meviewer.ui.viewmodel.CommentViewModel
 import io.github.daisukikaffuchino.han1meviewer.ui.viewmodel.PreviewCommentPrefetcher
 import io.github.daisukikaffuchino.utils.application
@@ -133,12 +135,11 @@ fun PreviewCommentRouteScreen(
                 viewModel.clearVideoReplyList()
             },
             sheetState = childSheetState,
-            dragHandle = null
+            containerColor = HanimeDefaults.Colors.pageSurface,
         ) {
             LaunchedEffect(currentCommentId) {
                 viewModel.getCommentReply(currentCommentId)
             }
-            BottomSheetHandler()
             val mappedReportFlow = remember(viewModel.reportMessage) {
                 viewModel.reportMessage.map { message ->
                     val text = if (message.args.isNotEmpty()) {
@@ -156,7 +157,7 @@ fun PreviewCommentRouteScreen(
                 postReplyStateFlow = viewModel.postReplyFlow,
                 commentLikeStateFlow = viewModel.commentLikeFlow,
                 reportReasons = viewModel.reportReason,
-                isAlreadyLogin = Preferences.isAlreadyLogin,
+                isAlreadyLogin = SettingsRepository.isAlreadyLogin,
                 onRefresh = { viewModel.getCommentReply(currentCommentId) },
                 onReply = { _, text ->
                     viewModel.postReply(currentCommentId, text)
@@ -165,7 +166,7 @@ fun PreviewCommentRouteScreen(
                     viewModel.reportComment(
                         reason.reasonKey ?: reason.value,
                         viewModel.currentUserId,
-                        "${Preferences.baseUrl}watch?v=${viewModel.code}",
+                        "${SettingsRepository.baseUrl}watch?v=${viewModel.code}",
                         comment.reportableType,
                         comment.reportableId,
                     )
@@ -203,10 +204,10 @@ fun PreviewCommentRouteScreen(
             currentSortType = viewModel.currentSortType,
             reportReasons = viewModel.reportReason,
             isPreviewCommentPrefetched = hasPrefetchedComments,
-            isAlreadyLogin = Preferences.isAlreadyLogin,
+            isAlreadyLogin = SettingsRepository.isAlreadyLogin,
             onRefresh = { viewModel.getComment(PREVIEW_COMMENT_PREFIX, route.dateCode) },
             onReply = { comment, text ->
-                if (!Preferences.isAlreadyLogin) return@CommentScreen
+                if (!SettingsRepository.isAlreadyLogin) return@CommentScreen
                 val replyTargetId = comment.replyTargetIdOrNull
                 if (replyTargetId == null) {
                     scope.launch {
@@ -220,13 +221,13 @@ fun PreviewCommentRouteScreen(
                 viewModel.reportComment(
                     reason.reasonKey ?: reason.value,
                     viewModel.currentUserId,
-                    "${Preferences.baseUrl}watch?v=${viewModel.code}",
+                    "${SettingsRepository.baseUrl}watch?v=${viewModel.code}",
                     comment.reportableType,
                     comment.reportableId,
                 )
             },
             onThumbUp = { comment ->
-                if (!Preferences.isAlreadyLogin) return@CommentScreen
+                if (!SettingsRepository.isAlreadyLogin) return@CommentScreen
                 if (comment.isChildComment) {
                     viewModel.likeChildComment(
                         true,
@@ -244,7 +245,7 @@ fun PreviewCommentRouteScreen(
                 }
             },
             onThumbDown = { comment ->
-                if (!Preferences.isAlreadyLogin) return@CommentScreen
+                if (!SettingsRepository.isAlreadyLogin) return@CommentScreen
                 if (comment.isChildComment) {
                     viewModel.likeChildComment(
                         false,
@@ -275,6 +276,7 @@ fun PreviewCommentRouteScreen(
                     reportMessages.emit(CommentMessage(activity.getString(R.string.there_is_a_small_issue)))
                 }
             },
+            listContentPadding = PaddingValues(vertical = 8.dp),
             initialFirstVisibleItemIndex = commentUiState.firstVisibleItemIndex,
             initialFirstVisibleItemScrollOffset = commentUiState.firstVisibleItemScrollOffset,
             onCommentScrollChange = { index, offset ->

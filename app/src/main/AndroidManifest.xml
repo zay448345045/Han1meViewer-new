@@ -31,32 +31,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Hanime"
         tools:targetApi="34">
-        <activity
-            android:name=".ui.activity.ManualInputCookiesActivity"
-            android:exported="false"
-            android:label="@string/title_activity_qrcode_scanner"
-            android:theme="@style/Theme.Hanime" />
-
-        <activity
-            android:name=".ui.activity.CloudflareActivity"
-            android:exported="false"
-            android:theme="@style/Theme.Hanime" />
+        <meta-data
+            android:name="com.google.android.gms.cast.framework.OPTIONS_PROVIDER_CLASS_NAME"
+            android:value="io.github.daisukikaffuchino.han1meviewer.cast.HanimeCastOptionsProvider" />
 
         <service
             android:name="androidx.work.impl.foreground.SystemForegroundService"
             android:foregroundServiceType="dataSync"
             tools:node="merge" />
-
-        <provider
-            android:name="androidx.startup.InitializationProvider"
-            android:authorities="${applicationId}.androidx-startup"
-            android:exported="false"
-            android:initOrder="114514"
-            tools:node="merge">
-            <meta-data
-                android:name="io.github.daisukikaffuchino.han1meviewer.HInitializer"
-                android:value="androidx.startup" />
-        </provider>
 
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -102,6 +84,12 @@
                 <data android:mimeType="video/*" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ui.activity.CrashActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:theme="@style/Theme.Hanime" />
 
         <!-- 默认启动器别名 -->
         <activity-alias
@@ -156,13 +144,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity-alias>
-        <activity
-            android:name=".ui.activity.LoginActivity"
-            android:configChanges="screenSize|orientation"
-            android:exported="true">
-
-        </activity>
-
         <receiver
             android:name=".ui.widget.CheckInWidgetProvider"
             android:exported="true">
